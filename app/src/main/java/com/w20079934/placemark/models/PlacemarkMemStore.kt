@@ -21,6 +21,7 @@ class PlacemarkMemStore : PlacemarkStore, AnkoLogger {
         if (foundPlacemark != null) {
             foundPlacemark.title = placemark.title
             foundPlacemark.description = placemark.description
+            foundPlacemark.image = placemark.image
             logAll()
         }
     }

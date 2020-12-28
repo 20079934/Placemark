@@ -1,10 +1,14 @@
 package com.w20079934.placemark.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import com.w20079934.placemark.R
+import com.w20079934.placemark.helpers.readImage
+import com.w20079934.placemark.helpers.readImageFromPath
+import com.w20079934.placemark.helpers.showImagePicker
 import com.w20079934.placemark.main.MainApp
 import com.w20079934.placemark.models.PlacemarkModel
 import kotlinx.android.synthetic.main.activity_placemark.*
@@ -17,6 +21,7 @@ class PlacemarkActivity : AppCompatActivity(), AnkoLogger {
     lateinit var app : MainApp;
     var placemark = PlacemarkModel();
     var edit = false;
+    val IMAGE_REQUEST=1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,9 +37,15 @@ class PlacemarkActivity : AppCompatActivity(), AnkoLogger {
             placemarkTitle.setText(placemark.title)
             placemarkDescription.setText(placemark.description)
             btnAdd.text = getString(R.string.button_updatePlacemark)
+            if(placemark.image != "") {
+                placemarkImage.setImageBitmap(readImageFromPath(this, placemark.image))
+                chooseImage.text = getString(R.string.button_changeImage)
+            }
         }
 
-
+        chooseImage.setOnClickListener {
+            showImagePicker(this, IMAGE_REQUEST)
+        }
         btnAdd.setOnClickListener()
         {
             if (placemarkTitle.text.isNotEmpty()) {
@@ -45,13 +56,9 @@ class PlacemarkActivity : AppCompatActivity(), AnkoLogger {
                     info("------------updated placemark!")
 
                 } else {
-                    app.placemarks.create(
-                        PlacemarkModel(
-                            0,
-                            placemarkTitle.text.toString(),
-                            placemarkDescription.text.toString()
-                        )
-                    )
+                    placemark.title = placemarkTitle.text.toString()
+                    placemark.description = placemarkDescription.text.toString()
+                    app.placemarks.create(placemark.copy())
                     info("------------inserted placemark!")
                 }
 
@@ -77,5 +84,18 @@ class PlacemarkActivity : AppCompatActivity(), AnkoLogger {
         }
         return super.onOptionsItemSelected(item)
     }
-    //test
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            IMAGE_REQUEST -> {
+                if (data != null) {
+                    placemark.image = data.data.toString()
+                    placemarkImage.setImageBitmap(readImage(this,resultCode,data))
+                    chooseImage.text = getString(R.string.button_changeImage)
+                }
+            }
+        }
+    }
+
 }
