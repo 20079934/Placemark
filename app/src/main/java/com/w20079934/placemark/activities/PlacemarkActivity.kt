@@ -8,15 +8,15 @@ import com.w20079934.placemark.R
 import com.w20079934.placemark.main.MainApp
 import com.w20079934.placemark.models.PlacemarkModel
 import kotlinx.android.synthetic.main.activity_placemark.*
-import kotlinx.android.synthetic.main.activity_placemark_list.*
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
-import org.jetbrains.anko.startActivityForResult
 import org.jetbrains.anko.toast
 
 class PlacemarkActivity : AppCompatActivity(), AnkoLogger {
 
     lateinit var app : MainApp;
+    var placemark = PlacemarkModel();
+    var edit = false;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,18 +26,39 @@ class PlacemarkActivity : AppCompatActivity(), AnkoLogger {
         toolbarAdd.title = title
         setSupportActionBar(toolbarAdd)
 
+        if(intent.hasExtra("placemark_edit")) {
+            edit = true
+            placemark = intent.extras?.getParcelable<PlacemarkModel>("placemark_edit")!!
+            placemarkTitle.setText(placemark.title)
+            placemarkDescription.setText(placemark.description)
+            btnAdd.text = getString(R.string.button_updatePlacemark)
+        }
+
+
         btnAdd.setOnClickListener()
         {
             if (placemarkTitle.text.isNotEmpty()) {
-                app.placemarks.add(PlacemarkModel(placemarkTitle.text.toString(), placemarkDescription.text.toString()))
-                info("current placemarks:")
-                for (a in app.placemarks) {
-                    info("title: ${a.title}, description: ${a.description}")
+                if(edit) {
+                    placemark.title = placemarkTitle.text.toString()
+                    placemark.description = placemarkDescription.text.toString()
+                    app.placemarks.update(placemark)
+                    info("------------updated placemark!")
+
+                } else {
+                    app.placemarks.create(
+                        PlacemarkModel(
+                            0,
+                            placemarkTitle.text.toString(),
+                            placemarkDescription.text.toString()
+                        )
+                    )
+                    info("------------inserted placemark!")
                 }
+
                 setResult(AppCompatActivity.RESULT_OK)
                 finish()
             } else {
-                toast("Please Enter a title")
+                toast(getString(R.string.menu_invalidName))
             }
         }
     }
